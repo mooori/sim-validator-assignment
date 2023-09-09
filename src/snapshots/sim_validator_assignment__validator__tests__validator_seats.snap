@@ -1,0 +1,6 @@
+---
+source: src/validator.rs
+expression: validator_0_seats.seats()
+---
+[]
+

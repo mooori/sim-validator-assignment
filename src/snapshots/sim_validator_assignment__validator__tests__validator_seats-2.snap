@@ -1,0 +1,29 @@
+---
+source: src/validator.rs
+expression: validator_3_seats.seats()
+---
+- validator:
+    account_id: validator_0
+    stake: 300
+    is_malicious: false
+    num_seats: 3
+    total_stake_share:
+      - 3
+      - 100
+- validator:
+    account_id: validator_0
+    stake: 300
+    is_malicious: false
+    num_seats: 3
+    total_stake_share:
+      - 3
+      - 100
+- validator:
+    account_id: validator_0
+    stake: 300
+    is_malicious: false
+    num_seats: 3
+    total_stake_share:
+      - 3
+      - 100
+

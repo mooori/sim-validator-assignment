@@ -1,0 +1,16 @@
+---
+source: src/validator.rs
+expression: global_stats
+info:
+  num_blocks: 1000
+  num_shards: 4
+  seats_per_shard: 2
+  stake_per_seat: 100
+  max_malicious_stake_per_shard:
+    - 1
+    - 3
+---
+stake: 1800
+malicious_stake: 410
+seats: 17
+

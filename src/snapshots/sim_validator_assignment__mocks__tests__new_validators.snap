@@ -1,0 +1,35 @@
+---
+source: src/mocks.rs
+expression: "new_validators(10, 100, 10 / 3)"
+---
+- account_id: validator_0
+  stake: 100
+  is_malicious: true
+- account_id: validator_1
+  stake: 100
+  is_malicious: true
+- account_id: validator_2
+  stake: 100
+  is_malicious: true
+- account_id: validator_3
+  stake: 100
+  is_malicious: false
+- account_id: validator_4
+  stake: 100
+  is_malicious: false
+- account_id: validator_5
+  stake: 100
+  is_malicious: false
+- account_id: validator_6
+  stake: 100
+  is_malicious: false
+- account_id: validator_7
+  stake: 100
+  is_malicious: false
+- account_id: validator_8
+  stake: 100
+  is_malicious: false
+- account_id: validator_9
+  stake: 100
+  is_malicious: false
+

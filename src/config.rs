@@ -4,10 +4,12 @@ use serde::Serialize;
 
 use crate::seat::Seat;
 
+// TODO change stake related types to u128
 #[derive(Parser, Serialize, Debug)]
 pub struct Config {
     #[arg(long)]
     pub num_blocks: u64,
+    // TODO change to `u16`
     #[arg(long)]
     pub num_shards: u64,
     /// TODO mention excess validators are ignored/unassigned.
@@ -48,8 +50,12 @@ impl Config {
             .expect("min_required_seats should fit into return type")
     }
 
-    // Collects the number of seats required for a shard by collecting `seats[shard_idx * i]` for `i
-    // in 0..n` where `n` is the number of seats per shard.
+    /// Collects the (consecutive) seats required for `shard_idx` starting from `seats[shard_idx *
+    /// self.seats_per_shard]`.
+    ///
+    /// # Panics
+    ///
+    /// If `shard_idx` is out of bounds or if `seats` contains not enough seats.
     pub fn collect_seats_for_shard<'seats>(
         &self,
         shard_idx: usize,
@@ -68,13 +74,8 @@ impl Config {
         }
 
         let seats_per_shard = usize::try_from(self.seats_per_shard).unwrap();
-        let num_shards = usize::try_from(self.num_shards).unwrap();
-        let mut shard_seats = Vec::with_capacity(seats_per_shard);
-        let mut i = shard_idx;
-        while i < seats.len() && shard_seats.len() < seats_per_shard {
-            shard_seats.push(&seats[i]);
-            i += num_shards;
-        }
+        let start = shard_idx * seats_per_shard;
+        let shard_seats: Vec<_> = seats[start..start + seats_per_shard].iter().collect();
 
         Ok(shard_seats)
     }
@@ -107,6 +108,8 @@ mod tests {
         // Using ordered seats as input to have a deterministic result of `collect_seats_for_shard`.
         let seats = new_ordered_seats(&validators);
 
+        // TODO test abort conditions
+
         insta::with_settings!({
             info => &(
                 &config,
@@ -114,9 +117,10 @@ mod tests {
                 &seats
             )
         }, {
-            insta::assert_yaml_snapshot!(
-                config.collect_seats_for_shard(2, &seats).expect("seat collection should succeed")
-            );
+            insta::assert_yaml_snapshot!(config.collect_seats_for_shard(0, &seats).unwrap());
+            insta::assert_yaml_snapshot!(config.collect_seats_for_shard(1, &seats).unwrap());
+            insta::assert_yaml_snapshot!(config.collect_seats_for_shard(2, &seats).unwrap());
+            insta::assert_yaml_snapshot!(config.collect_seats_for_shard(3, &seats).unwrap());
         })
     }
 }

@@ -1,6 +1,6 @@
 ---
 source: src/config.rs
-expression: "config.collect_seats_for_shard(0, &seats).unwrap()"
+expression: "config.collect_seats_for_shard(3, &seats).unwrap()"
 info:
   - num_blocks: 1000
     num_shards: 4
@@ -148,19 +148,19 @@ info:
           - 18
 ---
 - validator:
-    account_id: validator_0
-    stake: 500
-    is_malicious: false
-    num_seats: 5
+    account_id: validator_1
+    stake: 310
+    is_malicious: true
+    num_seats: 3
     total_stake_share:
-      - 5
-      - 18
+      - 31
+      - 180
 - validator:
-    account_id: validator_0
-    stake: 500
-    is_malicious: false
-    num_seats: 5
+    account_id: validator_1
+    stake: 310
+    is_malicious: true
+    num_seats: 3
     total_stake_share:
-      - 5
-      - 18
+      - 31
+      - 180
 

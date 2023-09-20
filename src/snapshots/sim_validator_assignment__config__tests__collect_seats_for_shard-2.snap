@@ -1,6 +1,6 @@
 ---
 source: src/config.rs
-expression: "config.collect_seats_for_shard(0, &seats).unwrap()"
+expression: "config.collect_seats_for_shard(1, &seats).unwrap()"
 info:
   - num_blocks: 1000
     num_shards: 4

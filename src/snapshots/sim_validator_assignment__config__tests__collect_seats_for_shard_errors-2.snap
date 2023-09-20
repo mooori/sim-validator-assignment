@@ -1,0 +1,7 @@
+---
+source: src/config.rs
+expression: "config.collect_seats_for_shard(0, &[])"
+---
+Err(
+    "validators fill only 0/8 of seats",
+)

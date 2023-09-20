@@ -62,7 +62,11 @@ impl Config {
         seats: &'seats [Seat],
     ) -> anyhow::Result<Vec<&Seat<'seats>>> {
         if u64::try_from(shard_idx).unwrap() >= self.num_shards {
-            anyhow::bail!("shard_idx {} is invalid for {}", shard_idx, self.num_shards)
+            anyhow::bail!(
+                "shard_idx {} is an invalid index for {} shards",
+                shard_idx,
+                self.num_shards
+            )
         }
         let required_seats = usize::try_from(self.num_shards * self.seats_per_shard).unwrap();
         if seats.len() < required_seats {
@@ -108,8 +112,6 @@ mod tests {
         // Using ordered seats as input to have a deterministic result of `collect_seats_for_shard`.
         let seats = new_ordered_seats(&validators);
 
-        // TODO test abort conditions
-
         insta::with_settings!({
             info => &(
                 &config,
@@ -122,5 +124,15 @@ mod tests {
             insta::assert_yaml_snapshot!(config.collect_seats_for_shard(2, &seats).unwrap());
             insta::assert_yaml_snapshot!(config.collect_seats_for_shard(3, &seats).unwrap());
         })
+    }
+
+    #[test]
+    pub fn test_collect_seats_for_shard_errors() {
+        let config = Config::new_mock();
+        let (_, validators) = parse_raw_validator_data(&config, &new_test_raw_validator_data());
+        let seats = new_ordered_seats(&validators);
+
+        insta::assert_debug_snapshot!(config.collect_seats_for_shard(4, &seats));
+        insta::assert_debug_snapshot!(config.collect_seats_for_shard(0, &[]));
     }
 }

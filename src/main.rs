@@ -17,7 +17,7 @@ fn main() -> anyhow::Result<()> {
     let (global_stats, validators) = parse_raw_validator_data(&config, &raw_validator_data);
 
     println!("global_stats: {:?}", global_stats);
-    if global_stats.seats < config.num_shards * config.seats_per_shard {
+    if global_stats.seats < u64::from(config.num_shards) * config.seats_per_shard {
         anyhow::bail!(
             "Validators cover {} seats, config requires {} seats",
             global_stats.seats,
@@ -33,27 +33,26 @@ fn main() -> anyhow::Result<()> {
         let shuffled_seats = ShuffledSeats::new(&mut ordered_seats);
 
         for shard_idx in 0..config.num_shards {
-            let shard_idx = usize::try_from(shard_idx).expect("shard_idx should fit usize");
+            let shard_idx = usize::from(shard_idx);
             let shard_seats =
                 config.collect_seats_for_shard(shard_idx, shuffled_seats.get_seats())?;
             let shard = Shard::new(&config, shard_seats)?;
             if shard.is_corrupted(&config) {
                 num_corrupted_shards += 1;
-                println!("shard {shard_idx} at block_height{block_height} is corrupted.")
             }
         }
 
         if block_height % 100_000 == 0 {
             log_heartbeat(
                 block_height,
-                block_height * config.num_shards,
+                block_height * u64::from(config.num_shards),
                 num_corrupted_shards,
             );
         }
     }
 
     println!("Simulated {} blocks with {} shards each. The number of corrupted shards out of total shards is {} / {}",
-    config.num_blocks, config.num_shards, num_corrupted_shards, config.num_blocks * config.num_shards
+    config.num_blocks, config.num_shards, num_corrupted_shards, config.num_blocks * u64::from(config.num_shards)
 );
     Ok(())
 }

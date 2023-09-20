@@ -9,9 +9,11 @@ use crate::seat::Seat;
 pub struct Config {
     #[arg(long)]
     pub num_blocks: u64,
-    // TODO change to `u16`
+    // Using `u16` because it allows infallible conversion to `usize` (which is not the case for
+    // unsigned integer types with more bits, e.g. `u32`). For use cases of this simulation the
+    // number of shards is expected to be less than `u16::MAX`.
     #[arg(long)]
-    pub num_shards: u64,
+    pub num_shards: u16,
     /// TODO mention excess validators are ignored/unassigned.
     #[arg(long)]
     pub seats_per_shard: u64,
@@ -45,7 +47,7 @@ impl Config {
 
     /// Returns the amount of seats for all shards that must be filled by validators.
     pub fn total_seats(&self) -> u64 {
-        self.num_shards
+        u64::from(self.num_shards)
             .checked_mul(self.seats_per_shard)
             .expect("min_required_seats should fit into return type")
     }
@@ -61,14 +63,15 @@ impl Config {
         shard_idx: usize,
         seats: &'seats [Seat],
     ) -> anyhow::Result<Vec<&Seat<'seats>>> {
-        if u64::try_from(shard_idx).unwrap() >= self.num_shards {
+        if shard_idx >= usize::from(self.num_shards) {
             anyhow::bail!(
                 "shard_idx {} is an invalid index for {} shards",
                 shard_idx,
                 self.num_shards
             )
         }
-        let required_seats = usize::try_from(self.num_shards * self.seats_per_shard).unwrap();
+        let required_seats =
+            usize::from(self.num_shards) * usize::try_from(self.seats_per_shard).unwrap();
         if seats.len() < required_seats {
             anyhow::bail!(
                 "validators fill only {}/{} of seats",

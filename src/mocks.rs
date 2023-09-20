@@ -1,7 +1,5 @@
 use crate::validator::RawValidatorData;
 
-// TODO put this in a separate create that handles generating `RawValidatorData`.
-
 /// Generates `num` instances of `RawValidatorData` each having the same `stake`. Out of theses
 /// validators `num_malicious` are malicious.
 pub fn new_validators(num: u64, stake: u128, num_malicious: u64) -> Vec<RawValidatorData> {

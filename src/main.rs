@@ -25,7 +25,6 @@ fn main() -> anyhow::Result<()> {
         )
     }
 
-    // TODO make collecting stats more sophisticated.
     let mut num_corrupted_shards = 0;
 
     for block_height in 0..config.num_blocks {

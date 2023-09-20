@@ -26,7 +26,6 @@ pub struct ShuffledSeats<'seats> {
     seats: &'seats mut [Seat<'seats>],
 }
 
-// TODO impl new(seats) which shuffles them
 impl<'seats> ShuffledSeats<'seats> {
     /// Shuffles the input `seats`.
     pub fn new(seats: &'seats mut [Seat<'seats>]) -> Self {

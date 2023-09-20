@@ -31,8 +31,3 @@ make <target>
 # Development
 
 Notes regarding the development workflow can be found in [`Development.md`](./Development.md).
-
-# TODO
-
-- setup cargo clippy and rust-fmt
-- setup CI

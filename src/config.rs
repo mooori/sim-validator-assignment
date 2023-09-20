@@ -13,7 +13,8 @@ pub struct Config {
     // number of shards is expected to be less than `u16::MAX`.
     #[arg(long)]
     pub num_shards: u16,
-    /// TODO mention excess validators are ignored/unassigned.
+    /// The set of validators must be sufficient to fill `num_shards * seats_per_shard` seats. Any
+    /// seats above that threshold remain unassigned.
     #[arg(long)]
     pub seats_per_shard: u64,
     /// The amount of stake required to get one seat.

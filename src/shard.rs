@@ -5,8 +5,8 @@ use num_rational::Ratio;
 #[derive(Debug, Default)]
 pub struct Shard<'seats> {
     seats: Vec<&'seats Seat<'seats>>,
-    stake: u64,
-    malicious_stake: u64,
+    stake: u128,
+    malicious_stake: u128,
 }
 
 impl<'seats> Shard<'seats> {

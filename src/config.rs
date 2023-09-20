@@ -4,7 +4,6 @@ use serde::Serialize;
 
 use crate::seat::Seat;
 
-// TODO change stake related types to u128
 #[derive(Parser, Serialize, Debug)]
 pub struct Config {
     #[arg(long)]
@@ -19,11 +18,11 @@ pub struct Config {
     pub seats_per_shard: u64,
     /// The amount of stake required to get one seat.
     #[arg(long)]
-    pub stake_per_seat: u64,
+    pub stake_per_seat: u128,
     /// If the ratio of malicious stake is higher than this threshold, the shard is considered
     /// corrupted, i.e. a security failure occured.
     #[arg(long)]
-    pub max_malicious_stake_per_shard: Ratio<u64>,
+    pub max_malicious_stake_per_shard: Ratio<u128>,
 }
 
 impl Config {
@@ -39,10 +38,10 @@ impl Config {
     }
 
     /// Returns the number of (full) seats that can be claimed by `stake`.
-    pub fn seats_per_stake(&self, stake: u64) -> u64 {
+    pub fn seats_per_stake(&self, stake: u128) -> u64 {
         // Integer division in Rust returns the floor as described here
         // https://doc.rust-lang.org/std/primitive.u64.html#method.div_euclid
-        stake / self.stake_per_seat
+        u64::try_from(stake / self.stake_per_seat).expect("seats per stake should fit u64")
     }
 
     /// Returns the amount of seats for all shards that must be filled by validators.

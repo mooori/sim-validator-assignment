@@ -7,7 +7,7 @@ use crate::seat::Seat;
 #[derive(Serialize, Debug)]
 pub struct RawValidatorData {
     pub account_id: String,
-    pub stake: u64,
+    pub stake: u128,
     pub is_malicious: bool,
 }
 
@@ -43,9 +43,9 @@ pub fn parse_raw_validator_data(
 #[derive(Serialize, Default, Debug)]
 pub struct GlobalStats {
     /// Sum of validator stakes.
-    pub stake: u64,
+    pub stake: u128,
     /// Sum of stake of malicious validator stakes.
-    pub malicious_stake: u64,
+    pub malicious_stake: u128,
     /// Total number of seats of all validators.
     pub seats: u64,
 }
@@ -53,10 +53,10 @@ pub struct GlobalStats {
 #[derive(Serialize, PartialEq, Debug)]
 pub struct Validator {
     account_id: String,
-    stake: u64,
+    stake: u128,
     is_malicious: bool,
     num_seats: u64,
-    total_stake_share: Ratio<u64>,
+    total_stake_share: Ratio<u128>,
 }
 
 impl Validator {

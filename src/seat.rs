@@ -29,7 +29,6 @@ pub struct ShuffledSeats<'seats> {
 impl<'seats> ShuffledSeats<'seats> {
     /// Shuffles the input `seats`.
     pub fn new(seats: &'seats mut [Seat<'seats>]) -> Self {
-        // TODO mention library used for randomness in README
         fastrand::shuffle(seats);
         Self { seats }
     }

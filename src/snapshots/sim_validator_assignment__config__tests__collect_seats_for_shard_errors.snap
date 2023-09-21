@@ -1,0 +1,7 @@
+---
+source: src/config.rs
+expression: "config.collect_seats_for_shard(4, &seats)"
+---
+Err(
+    "shard_idx 4 is an invalid index for 4 shards",
+)

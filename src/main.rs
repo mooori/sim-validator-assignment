@@ -13,6 +13,12 @@ use validator::{new_ordered_seats, parse_raw_validator_data};
 fn main() -> anyhow::Result<()> {
     let config = Config::parse();
 
+    // Mock a set of validators corresponding to the one used in Table 4 of this paper
+    // https://www.montrealblockchainlab.com/New%20Mathematical%20Model.pdf
+    // We model 1/3 of validators as malicious which corresponds to Class B (see Table 1).
+    let num_validators = 4000;
+    let raw_validator_data = mocks::new_validators(num_validators, 1, num_validators / 3);
+
     let (population_stats, validators) = parse_raw_validator_data(&config, &raw_validator_data);
 
     println!("population_stats: {:?}", population_stats);

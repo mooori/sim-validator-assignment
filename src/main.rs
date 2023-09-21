@@ -13,14 +13,13 @@ use validator::{new_ordered_seats, parse_raw_validator_data};
 fn main() -> anyhow::Result<()> {
     let config = Config::parse();
 
-    let raw_validator_data = mocks::new_100();
-    let (global_stats, validators) = parse_raw_validator_data(&config, &raw_validator_data);
+    let (population_stats, validators) = parse_raw_validator_data(&config, &raw_validator_data);
 
-    println!("global_stats: {:?}", global_stats);
-    if global_stats.seats < u64::from(config.num_shards) * config.seats_per_shard {
+    println!("population_stats: {:?}", population_stats);
+    if population_stats.seats < u64::from(config.num_shards) * config.seats_per_shard {
         anyhow::bail!(
             "Validators cover {} seats, config requires {} seats",
-            global_stats.seats,
+            population_stats.seats,
             config.total_seats()
         )
     }

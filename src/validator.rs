@@ -14,16 +14,16 @@ pub struct RawValidatorData {
 pub fn parse_raw_validator_data(
     config: &Config,
     input: &[RawValidatorData],
-) -> (GlobalStats, Vec<Validator>) {
-    let mut global_stats = GlobalStats::default();
+) -> (PopulationStats, Vec<Validator>) {
+    let mut population_stats = PopulationStats::default();
     let mut validators = vec![];
 
     for v in input.iter() {
-        global_stats.stake += v.stake;
+        population_stats.stake += v.stake;
         if v.is_malicious {
-            global_stats.malicious_stake += v.stake;
+            population_stats.malicious_stake += v.stake;
         }
-        global_stats.seats += config.seats_per_stake(v.stake);
+        population_stats.seats += config.seats_per_stake(v.stake);
     }
 
     for v in input.iter() {
@@ -32,16 +32,16 @@ pub fn parse_raw_validator_data(
             stake: v.stake,
             is_malicious: v.is_malicious,
             num_seats: config.seats_per_stake(v.stake),
-            total_stake_share: Ratio::new(v.stake, global_stats.stake),
+            total_stake_share: Ratio::new(v.stake, population_stats.stake),
         })
     }
 
-    (global_stats, validators)
+    (population_stats, validators)
 }
 
-// TODO rename to PopulationStats
+/// Holds data describing a set of validators.
 #[derive(Serialize, Default, Debug)]
-pub struct GlobalStats {
+pub struct PopulationStats {
     /// Sum of validator stakes.
     pub stake: u128,
     /// Sum of stake of malicious validator stakes.
@@ -196,13 +196,13 @@ pub mod tests {
     #[test]
     fn test_parse_raw_validator_input() {
         let config = Config::new_mock();
-        let (global_stats, validators) =
+        let (population_stats, validators) =
             parse_raw_validator_data(&config, &new_test_raw_validator_data());
 
         insta::with_settings!({
             info => &config,
         }, {
-            insta::assert_yaml_snapshot!(global_stats);
+            insta::assert_yaml_snapshot!(population_stats);
             insta::assert_yaml_snapshot!(validators);
         })
     }

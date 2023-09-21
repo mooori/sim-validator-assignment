@@ -1,6 +1,6 @@
 ---
 source: src/validator.rs
-expression: global_stats
+expression: population_stats
 info:
   num_blocks: 1000
   num_shards: 4

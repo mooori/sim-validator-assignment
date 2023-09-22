@@ -16,9 +16,9 @@ Hints on how to run a simulation:
 
 ```
 # Show a description of the simulation parameters.
-cargo run -- --help
+cargo run -p sim-validator-assignment -- --help
 # Run a simulation with your parameters.
-cargo run -- --num-blocks <...>
+cargo run -p sim-validator-assignment -- --num-blocks <...>
 
 # Alternatively, run a simulation defined in the `Makefile`.
 make <target>

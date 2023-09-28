@@ -1,0 +1,16 @@
+---
+source: dl-validator-data/src/near.rs
+expression: "&validators[..2]"
+---
+[
+    ValidatorData {
+        account_id: "node1",
+        stake: 46520997523084461567575091770703,
+        is_malicious: None,
+    },
+    ValidatorData {
+        account_id: "node2",
+        stake: 46515725866196237909861376673130,
+        is_malicious: None,
+    },
+]

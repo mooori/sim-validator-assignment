@@ -1,7 +1,8 @@
 [workspace]
 
 members = [
-    "sim-validator-assignment"
+    "dl-validator-data",
+    "sim-validator-assignment",
 ]
 
 [profile.dev.package]

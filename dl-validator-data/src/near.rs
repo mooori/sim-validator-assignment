@@ -2,14 +2,14 @@ use serde::Deserialize;
 
 use crate::protocol::{Protocol, ValidatorData};
 
-pub struct NearPrototocl {
+pub struct NearProtocol {
     /// The RPC endpoint to query. See [`Self::new`] for more info.
     rpc_url: String,
     /// The block height for which validator is queried. See [`Self::new`] for more info.
     block: Option<u64>,
 }
 
-impl NearPrototocl {
+impl NearProtocol {
     /// Constructs an instance to download validator data from `rpc_url` for `block_height`.
     ///
     /// Near [RPC docs] list several providers.
@@ -25,7 +25,7 @@ impl NearPrototocl {
     }
 }
 
-impl Protocol for NearPrototocl {
+impl Protocol for NearProtocol {
     /// Downloads Near validator data via the [`validators`] RPC method.
     ///
     /// [`validators`]: https://docs.near.org/api/rpc/network#validation-status
@@ -112,7 +112,7 @@ impl From<RpcValidatorData> for ValidatorData {
 mod tests {
     use crate::protocol::Protocol;
 
-    use super::NearPrototocl;
+    use super::NearProtocol;
 
     const RPC_URL: &str = "https://archival-rpc.testnet.near.org";
     /// Use a constant block in tests to have deterministic results of RPC queries.
@@ -120,7 +120,7 @@ mod tests {
 
     #[test]
     fn test_download_validator_data() -> anyhow::Result<()> {
-        let protocol = NearPrototocl::new(RPC_URL.to_owned(), Some(BLOCK_HEIGHT));
+        let protocol = NearProtocol::new(RPC_URL.to_owned(), Some(BLOCK_HEIGHT));
         let validators = protocol.download_validator_data()?;
 
         // The downloaded `valdiators` should be deterministic since we use a fixed block height.
@@ -135,7 +135,7 @@ mod tests {
     /// test only verifies that validator data was download but does not check the data itself.
     #[test]
     fn test_download_validator_data_latest() -> anyhow::Result<()> {
-        let protocol = NearPrototocl::new(RPC_URL.to_owned(), None);
+        let protocol = NearProtocol::new(RPC_URL.to_owned(), None);
         let validators = protocol.download_validator_data()?;
         assert!(validators.len() > 0);
         Ok(())
@@ -146,7 +146,7 @@ mod tests {
     #[test]
     fn test_rpc_body_error() -> anyhow::Result<()> {
         // Querying a block height that is not the last block in an epoch causes an error.
-        let protocol = NearPrototocl::new(RPC_URL.to_owned(), Some(42));
+        let protocol = NearProtocol::new(RPC_URL.to_owned(), Some(42));
         let err = protocol
             .download_validator_data()
             .expect_err("querying an invalid block should lead to an error");

@@ -6,11 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0"
-clap = { version = "4.4.2", features = ["derive"] }
-fastrand = "2.0"
-num-rational = {version="0.4", features = ["serde"]}
-serde = { version = "1.0", features = ["derive"] }
+anyhow.workspace = true
+clap.workspace = true
+fastrand.workspace = true
+num-rational.workspace = true
+serde.workspace = true
 
 [dev-dependencies]
-insta = { version = "1.31.0", features = ["yaml"] }
+insta.workspace = true

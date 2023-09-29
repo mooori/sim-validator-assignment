@@ -1,0 +1,5 @@
+---
+source: dl-validator-data/src/near.rs
+expression: err
+---
+"rpc error: {\"cause\":{\"name\":\"UNKNOWN_EPOCH\"},\"code\":-32000,\"data\":\"Unknown Epoch\",\"message\":\"Server error\",\"name\":\"HANDLER_ERROR\"}"

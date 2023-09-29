@@ -1,5 +1,5 @@
 [package]
-name = "sim-validator-assignment"
+name = "dl-validator-data"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,10 +7,9 @@ edition = "2021"
 
 [dependencies]
 anyhow.workspace = true
-clap.workspace = true
-fastrand.workspace = true
-num-rational.workspace = true
+reqwest.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 
 [dev-dependencies]
 insta.workspace = true

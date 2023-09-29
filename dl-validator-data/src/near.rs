@@ -114,7 +114,7 @@ mod tests {
 
     use super::NearPrototocl;
 
-    const RPC_URL: &str = "https://rpc.testnet.near.org";
+    const RPC_URL: &str = "https://archival-rpc.testnet.near.org";
     /// Use a constant block in tests to have deterministic results of RPC queries.
     const BLOCK_HEIGHT: u64 = 139491540;
 

@@ -39,6 +39,18 @@ pub fn parse_raw_validator_data(
     (population_stats, validators)
 }
 
+impl From<dl_validator_data::ValidatorData> for RawValidatorData {
+    /// The returned validator is malicious if `data.is_malicious == Some(true)`, otherwise it is
+    /// not malicious.
+    fn from(data: dl_validator_data::ValidatorData) -> Self {
+        Self {
+            account_id: data.account_id,
+            stake: data.stake,
+            is_malicious: data.is_malicious.is_some_and(|is_malicious| is_malicious),
+        }
+    }
+}
+
 /// Holds data describing a set of validators.
 #[derive(Serialize, Default, Debug)]
 pub struct PopulationStats {

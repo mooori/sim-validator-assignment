@@ -8,9 +8,11 @@ edition = "2021"
 [dependencies]
 anyhow.workspace = true
 clap.workspace = true
+dl-validator-data = { path = "../dl-validator-data" }
 fastrand.workspace = true
 num-rational.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 
 [dev-dependencies]
 insta.workspace = true

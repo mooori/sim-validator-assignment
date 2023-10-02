@@ -1,10 +1,10 @@
-use clap::Parser;
+use clap::Args;
 use num_rational::Ratio;
 use serde::Serialize;
 
 use crate::seat::Seat;
 
-#[derive(Parser, Serialize, Debug)]
+#[derive(Args, Serialize, Debug)]
 pub struct Config {
     #[arg(long)]
     pub num_blocks: u64,

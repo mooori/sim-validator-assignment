@@ -1,3 +1,4 @@
+.PHONY: run
 run:
 	cargo run -p sim-validator-assignment -- \
 		run \
@@ -7,6 +8,7 @@ run:
 		--stake-per-seat 1 \
 		--max-malicious-stake-per-shard 1/2
 
+.PHONY: download
 download:
 	cargo run -p sim-validator-assignment -- \
 		download \

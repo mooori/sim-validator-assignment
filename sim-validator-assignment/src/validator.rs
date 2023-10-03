@@ -20,10 +20,12 @@ pub fn parse_raw_validator_data(
 
     for v in input.iter() {
         population_stats.stake += v.stake;
+        let num_seats = config.seats_per_stake(v.stake);
+        population_stats.seats += num_seats;
         if v.is_malicious {
             population_stats.malicious_stake += v.stake;
+            population_stats.malicious_seats += num_seats;
         }
-        population_stats.seats += config.seats_per_stake(v.stake);
     }
 
     for v in input.iter() {
@@ -58,8 +60,13 @@ pub struct PopulationStats {
     pub stake: u128,
     /// Sum of stake of malicious validator stakes.
     pub malicious_stake: u128,
-    /// Total number of seats of all validators.
+    /// Total number of seats of all validators. Note that some stake might not participate in
+    /// validation if it is not assigned to a seat. For example, if a validator has a stake of 17
+    /// and seat price is 5, then the validator holds 3 seats (worth 15 stake) and 2 stake remain
+    /// unassigned.
     pub seats: u64,
+    /// The number of seats held by malicious validators.
+    pub malicious_seats: u64,
 }
 
 #[derive(Serialize, PartialEq, Debug)]
@@ -137,7 +144,7 @@ pub mod tests {
                 stake: 90,
                 is_malicious: false,
             },
-            // Some more validators enough for running tests.
+            // Some more validators, to have enough for running tests.
             RawValidatorData {
                 account_id: "validator_3".to_owned(),
                 stake: 100,

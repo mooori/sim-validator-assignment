@@ -2,6 +2,8 @@ use crate::config::Config;
 use crate::seat::ShuffledSeats;
 use crate::shard::Shard;
 use crate::validator::{new_ordered_seats, parse_raw_validator_data, RawValidatorData};
+use num_rational::Ratio;
+use num_traits::ToPrimitive;
 use std::fs::read_to_string;
 use std::path::Path;
 
@@ -14,6 +16,19 @@ pub fn run(config: &Config) -> anyhow::Result<()> {
     let (population_stats, validators) = parse_raw_validator_data(&config, &raw_validator_data);
 
     println!("population_stats: {:?}", population_stats);
+    println!(
+        "malicious_stake / stake ≈ {:.5}",
+        Ratio::new(population_stats.malicious_stake, population_stats.stake)
+            .to_f64()
+            .unwrap()
+    );
+    println!(
+        "malicious_seats / seats ≈ {:.5}",
+        Ratio::new(population_stats.malicious_seats, population_stats.seats)
+            .to_f64()
+            .unwrap()
+    );
+
     if population_stats.seats < u64::from(config.num_shards) * config.seats_per_shard {
         anyhow::bail!(
             "Validators cover {} seats, config requires {} seats",

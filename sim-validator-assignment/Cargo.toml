@@ -11,6 +11,7 @@ clap.workspace = true
 dl-validator-data = { path = "../dl-validator-data" }
 fastrand.workspace = true
 num-rational.workspace = true
+num-traits.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 

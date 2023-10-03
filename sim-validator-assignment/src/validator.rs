@@ -1,10 +1,10 @@
 use num_rational::Ratio;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config::Config;
 use crate::seat::Seat;
 
-#[derive(Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct RawValidatorData {
     pub account_id: String,
     pub stake: u128,

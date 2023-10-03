@@ -1,6 +1,7 @@
 use clap::Args;
 use num_rational::Ratio;
 use serde::Serialize;
+use std::path::PathBuf;
 
 use crate::seat::Seat;
 
@@ -24,6 +25,11 @@ pub struct Config {
     /// corrupted, i.e. a security failure occured.
     #[arg(long)]
     pub max_malicious_stake_per_shard: Ratio<u128>,
+    /// The file from which validator data is read. It is expected to contain a vector of
+    /// `RawValidatorData` serialized as JSON. If no validator data is provided, mocked validator
+    /// data will be used in the simulation.
+    #[arg(long)]
+    pub validator_data: Option<PathBuf>,
 }
 
 impl Config {
@@ -35,6 +41,7 @@ impl Config {
             seats_per_shard: 2,
             stake_per_seat: 100,
             max_malicious_stake_per_shard: Ratio::new(1, 3),
+            validator_data: None,
         }
     }
 

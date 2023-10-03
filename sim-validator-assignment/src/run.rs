@@ -1,14 +1,15 @@
 use crate::config::Config;
 use crate::seat::ShuffledSeats;
 use crate::shard::Shard;
-use crate::validator::{new_ordered_seats, parse_raw_validator_data};
+use crate::validator::{new_ordered_seats, parse_raw_validator_data, RawValidatorData};
+use std::fs::read_to_string;
+use std::path::Path;
 
 pub fn run(config: &Config) -> anyhow::Result<()> {
-    // Mock a set of validators corresponding to the one used in Table 4 of this paper
-    // https://www.montrealblockchainlab.com/New%20Mathematical%20Model.pdf
-    // We model 1/3 of validators as malicious which corresponds to Class B (see Table 1).
-    let num_validators = 4000;
-    let raw_validator_data = crate::mocks::new_validators(num_validators, 1, num_validators / 3);
+    let raw_validator_data = match &config.validator_data {
+        Some(file_path) => read_validator_data(file_path.as_path())?,
+        None => mock_validator_data(),
+    };
 
     let (population_stats, validators) = parse_raw_validator_data(&config, &raw_validator_data);
 
@@ -51,6 +52,21 @@ pub fn run(config: &Config) -> anyhow::Result<()> {
         config.num_blocks, config.num_shards, num_corrupted_shards, config.num_blocks * u64::from(config.num_shards)
     );
     Ok(())
+}
+
+/// Reads validator data from a file exptected to contain `Vec<RawValidatorData>` serialized as
+/// JSON.
+fn read_validator_data(file_path: &Path) -> anyhow::Result<Vec<RawValidatorData>> {
+    let file_content = read_to_string(file_path)?;
+    serde_json::from_str::<Vec<RawValidatorData>>(&file_content).map_err(|err| err.into())
+}
+
+fn mock_validator_data() -> Vec<RawValidatorData> {
+    // Mock a set of validators corresponding to the one used in Table 4 of this paper
+    // https://www.montrealblockchainlab.com/New%20Mathematical%20Model.pdf
+    // We model 1/3 of validators as malicious which corresponds to Class B (see Table 1).
+    let num_validators = 4000;
+    crate::mocks::new_validators(num_validators, 1, num_validators / 3)
 }
 
 fn log_heartbeat(block_height: u64, num_simulated_shards: u64, num_corrupted_shards: u64) {

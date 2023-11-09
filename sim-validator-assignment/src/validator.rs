@@ -2,6 +2,7 @@ use num_rational::Ratio;
 use serde::{Deserialize, Serialize};
 
 use crate::config::Config;
+use crate::partial_seat::PartialSeat;
 use crate::seat::Seat;
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -82,7 +83,7 @@ impl Validator {
     /// Returns the validator's seats. The number of seats a validator claims is determined by the
     /// stake required per seat and the validator's stake.
     pub fn seats(&self) -> Vec<Seat> {
-        let seat = Seat::new(&self);
+        let seat = Seat::new(self);
         vec![seat.clone(); self.num_seats_as_usize()]
     }
 
@@ -91,6 +92,22 @@ impl Validator {
     /// Field `num_seats` is an unsigned integer in the struct to facilitate calculations.
     pub fn num_seats_as_usize(&self) -> usize {
         usize::try_from(self.num_seats).expect("num_seats should fit into usize")
+    }
+
+    /// A validator has either 0 or 1 partial seat:
+    ///
+    /// - A validator has 0 partial seats if it has stake of 0 or if its stake evenly fills full
+    /// seats. Then this function returns `None`.
+    /// - Otherwise a validator has 1 partial seat which is returned as `Some(partial_seat)`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `stake_per_seat` is 0.
+    pub fn partial_seat(&self, stake_per_seat: u128) -> Option<PartialSeat> {
+        match self.stake % stake_per_seat {
+            0 => None,
+            weight => Some(PartialSeat::new(self, weight)),
+        }
     }
 
     pub fn get_is_malicious(&self) -> bool {
@@ -105,9 +122,24 @@ pub fn new_ordered_seats(validators: &[Validator]) -> Vec<Seat> {
     seats_per_validator.into_iter().flatten().collect()
 }
 
+/// Constructs `PartialSeats` for the provided `validators`. A validator who does not hold a partial
+/// seat will not be represented in the returned vector.
+pub fn new_ordered_partial_seats(
+    validators: &[Validator],
+    stake_per_seat: u128,
+) -> Vec<PartialSeat> {
+    validators
+        .iter()
+        .filter_map(|v| v.partial_seat(stake_per_seat))
+        .collect()
+}
+
 #[cfg(test)]
 pub mod tests {
     use num_rational::Ratio;
+
+    use crate::partial_seat::PartialSeat;
+    use crate::validator::new_ordered_partial_seats;
 
     use super::Config;
     use super::RawValidatorData;
@@ -197,7 +229,7 @@ pub mod tests {
     fn test_new_ordered_seats() {
         assert_eq!(new_ordered_seats(&[]), vec![]);
 
-        let config = Config::new_mock();
+        let config = Config::new_mock(false);
         let (_, validators) = parse_raw_validator_data(&config, &new_test_raw_validator_data());
         // Use a small set of validators to avoid bloating snapshot files.
         let validators = &validators[0..3];
@@ -214,7 +246,7 @@ pub mod tests {
 
     #[test]
     fn test_parse_raw_validator_input() {
-        let config = Config::new_mock();
+        let config = Config::new_mock(false);
         let (population_stats, validators) =
             parse_raw_validator_data(&config, &new_test_raw_validator_data());
 
@@ -234,5 +266,36 @@ pub mod tests {
 
         let validator_3_seats = new_test_validator();
         insta::assert_yaml_snapshot!(validator_3_seats.seats());
+    }
+
+    #[test]
+    fn test_validator_partial_seat() {
+        let validator = new_test_validator();
+
+        // stake fills full seats without remainder
+        assert_eq!(validator.partial_seat(100), None,);
+
+        // there is a partial seat
+        assert_eq!(
+            validator.partial_seat(90),
+            Some(PartialSeat::new(&validator, 30)),
+        );
+    }
+
+    #[test]
+    fn test_new_ordered_partial_seats() {
+        assert_eq!(new_ordered_partial_seats(&[], 1), vec![]);
+
+        let config = Config::new_mock(true);
+        let (_, validators) = parse_raw_validator_data(&config, &new_test_raw_validator_data());
+        insta::with_settings!({
+            info => &(
+                &config,
+                "validators:",
+                &validators
+            ),
+        }, {
+            insta::assert_yaml_snapshot!(new_ordered_partial_seats(&validators, config.stake_per_seat));
+        })
     }
 }

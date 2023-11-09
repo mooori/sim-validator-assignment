@@ -3,10 +3,11 @@ run:
 	cargo run -p sim-validator-assignment -- \
 		run \
 		--num-blocks 1000 \
-		--num-shards 1 \
+		--num-shards 4 \
 		--seats-per-shard 250 \
 		--stake-per-seat 1 \
-		--max-malicious-stake-per-shard 1/2
+		--max-malicious-stake-per-shard 1/2 \
+		--include-partial-seats
 
 .PHONY: download
 download:
@@ -28,5 +29,6 @@ run-with:
 		--seats-per-shard 250 \
 		--stake-per-seat 50000000000000000000000000000 \
 		--max-malicious-stake-per-shard 2/3 \
+		--include-partial-seats \
 		--validator-data ./validator_data.json
 

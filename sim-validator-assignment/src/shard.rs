@@ -1,17 +1,28 @@
 use crate::config::Config;
+use crate::partial_seat::PartialSeat;
 use crate::seat::Seat;
 use num_rational::Ratio;
 
 #[derive(Debug, Default)]
 pub struct Shard<'seats> {
     seats: Vec<&'seats Seat<'seats>>,
+    /// Contains partial seats in case they are enabled by configuration.
+    partial_seats: Option<Vec<&'seats PartialSeat<'seats>>>,
     stake: u128,
     malicious_stake: u128,
 }
 
 impl<'seats> Shard<'seats> {
-    pub fn new(config: &Config, seats: Vec<&'seats Seat>) -> anyhow::Result<Self> {
+    pub fn new(
+        config: &Config,
+        seats: Vec<&'seats Seat>,
+        partial_seats: Option<Vec<&'seats PartialSeat>>,
+    ) -> anyhow::Result<Self> {
         if seats.len() != usize::try_from(config.seats_per_shard).unwrap() {
+            // Count only _full_ seats for the minimum number of required seats, since it is not
+            // clear how a _partial_ seat should be weighted for that concern.
+            // Validator assignment frameworks might try to minimize the number of partial seats or
+            // try to ignore them entirely.
             anyhow::bail!(
                 "Shard requires {} seats, received {} seats",
                 config.seats_per_shard,
@@ -26,7 +37,19 @@ impl<'seats> Shard<'seats> {
                 shard.malicious_stake += config.stake_per_seat;
             }
         }
+
+        if let Some(partial_seats) = partial_seats.as_ref() {
+            for &ps in partial_seats.iter() {
+                let weight = ps.get_weight();
+                shard.stake += weight;
+                if ps.get_is_malicious() {
+                    shard.malicious_stake += weight;
+                }
+            }
+        }
+
         shard.seats = seats;
+        shard.partial_seats = partial_seats;
         Ok(shard)
     }
 

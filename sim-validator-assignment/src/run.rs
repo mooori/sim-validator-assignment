@@ -1,7 +1,10 @@
 use crate::config::Config;
+use crate::partial_seat::{PartialSeat, ShuffledPartialSeats};
 use crate::seat::ShuffledSeats;
 use crate::shard::Shard;
-use crate::validator::{new_ordered_seats, parse_raw_validator_data, RawValidatorData};
+use crate::validator::{
+    new_ordered_partial_seats, new_ordered_seats, parse_raw_validator_data, RawValidatorData,
+};
 use num_rational::Ratio;
 use num_traits::ToPrimitive;
 use std::fs::read_to_string;
@@ -13,7 +16,7 @@ pub fn run(config: &Config) -> anyhow::Result<()> {
         None => mock_validator_data(),
     };
 
-    let (population_stats, validators) = parse_raw_validator_data(&config, &raw_validator_data);
+    let (population_stats, validators) = parse_raw_validator_data(config, &raw_validator_data);
 
     println!("population_stats: {:?}", population_stats);
     println!(
@@ -40,15 +43,24 @@ pub fn run(config: &Config) -> anyhow::Result<()> {
     let mut num_corrupted_shards = 0;
 
     for block_height in 0..config.num_blocks {
-        let mut ordered_seats = new_ordered_seats(&validators);
-        let shuffled_seats = ShuffledSeats::new(&mut ordered_seats);
+        let mut seats = new_ordered_seats(&validators);
+        let shuffled_seats = ShuffledSeats::new(&mut seats);
+
+        let mut partial_seats = config
+            .include_partial_seats
+            .then(|| new_ordered_partial_seats(&validators, config.stake_per_seat));
+        let shuffled_partial_seats = partial_seats
+            .as_mut()
+            .map(|ps| ShuffledPartialSeats::new(ps));
 
         for shard_idx in 0..config.num_shards {
             let shard_idx = usize::from(shard_idx);
             let shard_seats =
                 config.collect_seats_for_shard(shard_idx, shuffled_seats.get_seats())?;
-            let shard = Shard::new(&config, shard_seats)?;
-            if shard.is_corrupted(&config) {
+            let shard_partial_seats =
+                get_partial_seats_for_shard(config, shuffled_partial_seats.as_ref(), shard_idx)?;
+            let shard = Shard::new(config, shard_seats, shard_partial_seats)?;
+            if shard.is_corrupted(config) {
                 num_corrupted_shards += 1;
             }
         }
@@ -86,4 +98,19 @@ fn mock_validator_data() -> Vec<RawValidatorData> {
 
 fn log_heartbeat(block_height: u64, num_simulated_shards: u64, num_corrupted_shards: u64) {
     println!("heartbeat(block_height: {block_height}): {num_corrupted_shards} / {num_simulated_shards} shards corrupted");
+}
+
+fn get_partial_seats_for_shard<'a>(
+    config: &'a Config,
+    partial_seats: Option<&'a ShuffledPartialSeats>,
+    shard_idx: usize,
+) -> anyhow::Result<Option<Vec<&'a PartialSeat<'a>>>> {
+    match partial_seats {
+        Some(partial_seats) => {
+            let shard_seats = config
+                .collect_partial_seats_for_shard(shard_idx, partial_seats.get_partial_seats())?;
+            Ok(Some(shard_seats))
+        }
+        None => Ok(None),
+    }
 }

@@ -1,0 +1,7 @@
+---
+source: sim-validator-assignment/src/config.rs
+expression: "config.collect_partial_seats_for_shard(config.num_shards.into(),\n    &partial_seats)"
+---
+Err(
+    "shard_idx 4 is an invalid index for 4 shards",
+)

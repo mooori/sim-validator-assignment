@@ -5,6 +5,7 @@ use config::Config;
 mod download;
 use download::{download, DownloadConfig};
 mod mocks;
+mod partial_seat;
 mod run;
 mod seat;
 mod shard;

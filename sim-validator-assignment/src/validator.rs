@@ -94,20 +94,15 @@ impl Validator {
         usize::try_from(self.num_seats).expect("num_seats should fit into usize")
     }
 
-    /// A validator has either 0 or 1 partial seat:
-    ///
-    /// - A validator has 0 partial seats if it has stake of 0 or if its stake evenly fills full
-    /// seats. Then this function returns `None`.
-    /// - Otherwise a validator has 1 partial seat which is returned as `Some(partial_seat)`.
+    /// Returns the validator's `PartialSeat`. It might have a weight of 0 if the validator's
+    /// stake is 0 or there is no remainder after distributing the validator's stake to full seats.
     ///
     /// # Panics
     ///
     /// Panics if `stake_per_seat` is 0.
-    pub fn partial_seat(&self, stake_per_seat: u128) -> Option<PartialSeat> {
-        match self.stake % stake_per_seat {
-            0 => None,
-            weight => Some(PartialSeat::new(self, weight)),
-        }
+    pub fn partial_seat(&self, stake_per_seat: u128) -> PartialSeat {
+        let weight = self.stake % stake_per_seat;
+        PartialSeat::new(self, weight)
     }
 
     pub fn get_is_malicious(&self) -> bool {
@@ -122,15 +117,22 @@ pub fn new_ordered_seats(validators: &[Validator]) -> Vec<Seat> {
     seats_per_validator.into_iter().flatten().collect()
 }
 
-/// Constructs `PartialSeats` for the provided `validators`. A validator who does not hold a partial
-/// seat will not be represented in the returned vector.
+/// Constructs `PartialSeats` for the provided `validators`. A validator whose partial seat has a
+/// weight of zero will not be represented in the returned vector.
 pub fn new_ordered_partial_seats(
     validators: &[Validator],
     stake_per_seat: u128,
 ) -> Vec<PartialSeat> {
     validators
         .iter()
-        .filter_map(|v| v.partial_seat(stake_per_seat))
+        .filter_map(|v| {
+            let partial_seat = v.partial_seat(stake_per_seat);
+            if partial_seat.get_weight() > 0 {
+                Some(partial_seat)
+            } else {
+                None
+            }
+        })
         .collect()
 }
 
@@ -273,13 +275,10 @@ pub mod tests {
         let validator = new_test_validator();
 
         // stake fills full seats without remainder
-        assert_eq!(validator.partial_seat(100), None,);
+        assert_eq!(validator.partial_seat(100), PartialSeat::new(&validator, 0));
 
-        // there is a partial seat
-        assert_eq!(
-            validator.partial_seat(90),
-            Some(PartialSeat::new(&validator, 30)),
-        );
+        // there is a partial seat with `weight > 0`
+        assert_eq!(validator.partial_seat(90), PartialSeat::new(&validator, 30));
     }
 
     #[test]

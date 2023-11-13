@@ -36,7 +36,7 @@ pub struct ShuffledPartialSeats<'seats> {
 }
 
 impl<'seats> ShuffledPartialSeats<'seats> {
-    /// Shuffled the input `partial_seats`.
+    /// Shuffles the input `partial_seats`.
     // TODO(rand) do all shuffling operations in one generic fn
     pub fn new(partial_seats: &'seats mut [PartialSeat<'seats>]) -> Self {
         fastrand::shuffle(partial_seats);

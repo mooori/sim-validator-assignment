@@ -6,8 +6,7 @@ use num_rational::Ratio;
 #[derive(Debug, Default)]
 pub struct Shard<'seats> {
     seats: Vec<&'seats Seat<'seats>>,
-    /// Contains partial seats in case they are enabled by configuration.
-    partial_seats: Option<Vec<&'seats PartialSeat<'seats>>>,
+    partial_seats: Vec<&'seats PartialSeat<'seats>>,
     stake: u128,
     malicious_stake: u128,
 }
@@ -16,7 +15,7 @@ impl<'seats> Shard<'seats> {
     pub fn new(
         config: &Config,
         seats: Vec<&'seats Seat>,
-        partial_seats: Option<Vec<&'seats PartialSeat>>,
+        partial_seats: Vec<&'seats PartialSeat>,
     ) -> anyhow::Result<Self> {
         if seats.len() != usize::try_from(config.seats_per_shard).unwrap() {
             // Count only _full_ seats for the minimum number of required seats, since it is not
@@ -38,13 +37,11 @@ impl<'seats> Shard<'seats> {
             }
         }
 
-        if let Some(partial_seats) = partial_seats.as_ref() {
-            for &ps in partial_seats.iter() {
-                let weight = ps.get_weight();
-                shard.stake += weight;
-                if ps.get_is_malicious() {
-                    shard.malicious_stake += weight;
-                }
+        for ps in partial_seats.iter() {
+            let weight = ps.get_weight();
+            shard.stake += weight;
+            if ps.get_is_malicious() {
+                shard.malicious_stake += weight;
             }
         }
 

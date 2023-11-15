@@ -58,11 +58,6 @@ impl Config {
         }
     }
 
-    /// Convenience wrapper around [`seat_per_stake()`].
-    pub fn seats_per_stake(&self, stake: u128) -> u64 {
-        seats_per_stake(stake, self.stake_per_seat)
-    }
-
     /// Returns the amount of seats for all shards that must be filled by validators.
     pub fn total_seats(&self) -> u64 {
         u64::from(self.num_shards)

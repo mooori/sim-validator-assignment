@@ -62,9 +62,7 @@ pub struct PopulationStats {
     /// Sum of stake of malicious validator stakes.
     pub malicious_stake: u128,
     /// Total number of seats of all validators. Note that some stake might not participate in
-    /// validation if it is not assigned to a seat. For example, if a validator has a stake of 17
-    /// and seat price is 5, then the validator holds 3 seats (worth 15 stake) and 2 stake remain
-    /// unassigned.
+    /// validation if it is not assigned to a seat and partial seats are disabled.
     pub seats: u64,
     /// The number of seats held by malicious validators.
     pub malicious_seats: u64,

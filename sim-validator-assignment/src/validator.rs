@@ -1,5 +1,7 @@
 use num_rational::Ratio;
 use serde::{Deserialize, Serialize};
+use std::fs::read_to_string;
+use std::path::Path;
 
 use crate::config::seats_per_stake;
 use crate::partial_seat::PartialSeat;
@@ -10,6 +12,13 @@ pub struct RawValidatorData {
     pub account_id: String,
     pub stake: u128,
     pub is_malicious: bool,
+}
+
+/// Reads validator data from a file exptected to contain `Vec<RawValidatorData>` serialized as
+/// JSON.
+pub(crate) fn read_validator_data(file_path: &Path) -> anyhow::Result<Vec<RawValidatorData>> {
+    let file_content = read_to_string(file_path)?;
+    serde_json::from_str::<Vec<RawValidatorData>>(&file_content).map_err(|err| err.into())
 }
 
 pub fn parse_raw_validator_data(

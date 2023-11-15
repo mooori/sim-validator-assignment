@@ -16,7 +16,8 @@ pub fn run(config: &Config) -> anyhow::Result<()> {
         None => mock_validator_data(),
     };
 
-    let (population_stats, validators) = parse_raw_validator_data(config, &raw_validator_data);
+    let (population_stats, validators) =
+        parse_raw_validator_data(&raw_validator_data, config.stake_per_seat);
 
     println!("population_stats: {:?}", population_stats);
     println!(

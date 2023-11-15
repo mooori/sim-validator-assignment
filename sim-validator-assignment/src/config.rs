@@ -163,7 +163,8 @@ mod tests {
     #[test]
     fn test_collect_seats_for_shard() {
         let config = Config::new_mock(false);
-        let (_, validators) = parse_raw_validator_data(&config, &new_test_raw_validator_data());
+        let (_, validators) =
+            parse_raw_validator_data(&new_test_raw_validator_data(), config.stake_per_seat);
         // Using ordered seats as input to have a deterministic result of `collect_seats_for_shard`.
         let seats = new_ordered_seats(&validators);
 
@@ -184,7 +185,8 @@ mod tests {
     #[test]
     fn test_collect_seats_for_shard_errors() {
         let config = Config::new_mock(false);
-        let (_, validators) = parse_raw_validator_data(&config, &new_test_raw_validator_data());
+        let (_, validators) =
+            parse_raw_validator_data(&new_test_raw_validator_data(), config.stake_per_seat);
         let seats = new_ordered_seats(&validators);
 
         insta::assert_debug_snapshot!(config.collect_seats_for_shard(4, &seats));
@@ -195,7 +197,8 @@ mod tests {
     fn test_collect_partial_seats_for_shard() {
         let mut config = Config::new_mock(true);
         config.stake_per_seat = 90;
-        let (_, validators) = parse_raw_validator_data(&config, &new_test_raw_validator_data());
+        let (_, validators) =
+            parse_raw_validator_data(&new_test_raw_validator_data(), config.stake_per_seat);
         // Using ordered partial seats as input to have a deterministic result of
         // `collect_partial_seats_for_shard`.
         let partial_seats = new_ordered_partial_seats(&validators, config.stake_per_seat);
@@ -223,7 +226,8 @@ mod tests {
     #[test]
     fn test_collect_partial_seats_for_shard_errors() {
         let config = Config::new_mock(true);
-        let (_, validators) = parse_raw_validator_data(&config, &new_test_raw_validator_data());
+        let (_, validators) =
+            parse_raw_validator_data(&new_test_raw_validator_data(), config.stake_per_seat);
         let partial_seats = new_ordered_partial_seats(&validators, config.stake_per_seat);
 
         insta::assert_debug_snapshot!(

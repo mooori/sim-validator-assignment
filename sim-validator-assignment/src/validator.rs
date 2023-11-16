@@ -1,7 +1,9 @@
 use num_rational::Ratio;
 use serde::{Deserialize, Serialize};
+use std::fs::read_to_string;
+use std::path::Path;
 
-use crate::config::Config;
+use crate::config::seats_per_stake;
 use crate::partial_seat::PartialSeat;
 use crate::seat::Seat;
 
@@ -12,16 +14,23 @@ pub struct RawValidatorData {
     pub is_malicious: bool,
 }
 
+/// Reads validator data from a file exptected to contain `Vec<RawValidatorData>` serialized as
+/// JSON.
+pub(crate) fn read_validator_data(file_path: &Path) -> anyhow::Result<Vec<RawValidatorData>> {
+    let file_content = read_to_string(file_path)?;
+    serde_json::from_str::<Vec<RawValidatorData>>(&file_content).map_err(|err| err.into())
+}
+
 pub fn parse_raw_validator_data(
-    config: &Config,
     input: &[RawValidatorData],
+    stake_per_seat: u128,
 ) -> (PopulationStats, Vec<Validator>) {
     let mut population_stats = PopulationStats::default();
     let mut validators = vec![];
 
     for v in input.iter() {
         population_stats.stake += v.stake;
-        let num_seats = config.seats_per_stake(v.stake);
+        let num_seats = seats_per_stake(v.stake, stake_per_seat);
         population_stats.seats += num_seats;
         if v.is_malicious {
             population_stats.malicious_stake += v.stake;
@@ -34,7 +43,7 @@ pub fn parse_raw_validator_data(
             account_id: v.account_id.clone(),
             stake: v.stake,
             is_malicious: v.is_malicious,
-            num_seats: config.seats_per_stake(v.stake),
+            num_seats: seats_per_stake(v.stake, stake_per_seat),
             total_stake_share: Ratio::new(v.stake, population_stats.stake),
         })
     }
@@ -62,9 +71,7 @@ pub struct PopulationStats {
     /// Sum of stake of malicious validator stakes.
     pub malicious_stake: u128,
     /// Total number of seats of all validators. Note that some stake might not participate in
-    /// validation if it is not assigned to a seat. For example, if a validator has a stake of 17
-    /// and seat price is 5, then the validator holds 3 seats (worth 15 stake) and 2 stake remain
-    /// unassigned.
+    /// validation if it is not assigned to a seat and partial seats are disabled.
     pub seats: u64,
     /// The number of seats held by malicious validators.
     pub malicious_seats: u64,
@@ -140,10 +147,10 @@ pub fn new_ordered_partial_seats(
 pub mod tests {
     use num_rational::Ratio;
 
+    use crate::config::Config;
     use crate::partial_seat::PartialSeat;
     use crate::validator::new_ordered_partial_seats;
 
-    use super::Config;
     use super::RawValidatorData;
     use super::Validator;
     use super::{new_ordered_seats, parse_raw_validator_data};
@@ -232,7 +239,8 @@ pub mod tests {
         assert_eq!(new_ordered_seats(&[]), vec![]);
 
         let config = Config::new_mock(false);
-        let (_, validators) = parse_raw_validator_data(&config, &new_test_raw_validator_data());
+        let (_, validators) =
+            parse_raw_validator_data(&new_test_raw_validator_data(), config.stake_per_seat);
         // Use a small set of validators to avoid bloating snapshot files.
         let validators = &validators[0..3];
         insta::with_settings!({
@@ -250,7 +258,7 @@ pub mod tests {
     fn test_parse_raw_validator_input() {
         let config = Config::new_mock(false);
         let (population_stats, validators) =
-            parse_raw_validator_data(&config, &new_test_raw_validator_data());
+            parse_raw_validator_data(&new_test_raw_validator_data(), config.stake_per_seat);
 
         insta::with_settings!({
             info => &config,
@@ -286,7 +294,8 @@ pub mod tests {
         assert_eq!(new_ordered_partial_seats(&[], 1), vec![]);
 
         let config = Config::new_mock(true);
-        let (_, validators) = parse_raw_validator_data(&config, &new_test_raw_validator_data());
+        let (_, validators) =
+            parse_raw_validator_data(&new_test_raw_validator_data(), config.stake_per_seat);
         insta::with_settings!({
             info => &(
                 &config,

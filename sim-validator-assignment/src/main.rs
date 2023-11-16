@@ -8,6 +8,8 @@ mod mocks;
 mod partial_seat;
 mod run;
 mod seat;
+mod seat_stats;
+use seat_stats::{print_seat_stats, SeatStatsConfig};
 mod shard;
 use run::run;
 mod validator;
@@ -28,6 +30,8 @@ enum Command {
     Run(Config),
     /// Downloads valdiator data
     Download(DownloadConfig),
+    /// Prints seat stats
+    SeatStats(SeatStatsConfig),
 }
 
 fn main() -> anyhow::Result<()> {
@@ -35,5 +39,6 @@ fn main() -> anyhow::Result<()> {
     match args.command {
         Command::Run(config) => run(&config),
         Command::Download(dl_config) => download(&dl_config),
+        Command::SeatStats(ss_config) => print_seat_stats(&ss_config),
     }
 }

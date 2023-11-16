@@ -32,3 +32,12 @@ run-with:
 		--include-partial-seats \
 		--validator-data ./validator_data.json
 
+# Runs a simulation reading data from `./validator_data.json` which is assumed to be obtained by
+# invoking the `download` target defined above.
+.PHONY: seat-stats
+seat-stats:
+	cargo run -p sim-validator-assignment -- \
+		seat-stats \
+		--validator-data ./validator_data.json \
+		--stake-per-seat 500000000000000000000000000000 \
+		--include-partial-seats

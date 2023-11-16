@@ -37,6 +37,13 @@ pub struct Config {
     pub include_partial_seats: bool,
 }
 
+/// Returns the number of (full) seats that can be claimed by `stake`.
+pub fn seats_per_stake(stake: u128, stake_per_seat: u128) -> u64 {
+    // Integer division in Rust returns the floor as described here
+    // https://doc.rust-lang.org/std/primitive.u64.html#method.div_euclid
+    u64::try_from(stake / stake_per_seat).expect("seats per stake should fit u64")
+}
+
 impl Config {
     #[cfg(test)]
     pub fn new_mock(include_partial_seats: bool) -> Self {
@@ -49,13 +56,6 @@ impl Config {
             validator_data: None,
             include_partial_seats,
         }
-    }
-
-    /// Returns the number of (full) seats that can be claimed by `stake`.
-    pub fn seats_per_stake(&self, stake: u128) -> u64 {
-        // Integer division in Rust returns the floor as described here
-        // https://doc.rust-lang.org/std/primitive.u64.html#method.div_euclid
-        u64::try_from(stake / self.stake_per_seat).expect("seats per stake should fit u64")
     }
 
     /// Returns the amount of seats for all shards that must be filled by validators.
@@ -140,7 +140,7 @@ impl Config {
 mod tests {
     use std::collections::BTreeMap;
 
-    use super::Config;
+    use super::{seats_per_stake, Config};
     use crate::validator::tests::new_test_raw_validator_data;
     use crate::validator::{
         new_ordered_partial_seats, new_ordered_seats, parse_raw_validator_data,
@@ -148,10 +148,10 @@ mod tests {
 
     #[test]
     fn test_seats_per_stake() {
-        let config = Config::new_mock(false);
-        assert_eq!(config.seats_per_stake(20), 0);
-        assert_eq!(config.seats_per_stake(100), 1);
-        assert_eq!(config.seats_per_stake(530), 5);
+        let stake_per_seat = 100;
+        assert_eq!(seats_per_stake(20, stake_per_seat), 0);
+        assert_eq!(seats_per_stake(100, stake_per_seat), 1);
+        assert_eq!(seats_per_stake(530, stake_per_seat), 5);
     }
 
     #[test]
@@ -163,7 +163,8 @@ mod tests {
     #[test]
     fn test_collect_seats_for_shard() {
         let config = Config::new_mock(false);
-        let (_, validators) = parse_raw_validator_data(&config, &new_test_raw_validator_data());
+        let (_, validators) =
+            parse_raw_validator_data(&new_test_raw_validator_data(), config.stake_per_seat);
         // Using ordered seats as input to have a deterministic result of `collect_seats_for_shard`.
         let seats = new_ordered_seats(&validators);
 
@@ -184,7 +185,8 @@ mod tests {
     #[test]
     fn test_collect_seats_for_shard_errors() {
         let config = Config::new_mock(false);
-        let (_, validators) = parse_raw_validator_data(&config, &new_test_raw_validator_data());
+        let (_, validators) =
+            parse_raw_validator_data(&new_test_raw_validator_data(), config.stake_per_seat);
         let seats = new_ordered_seats(&validators);
 
         insta::assert_debug_snapshot!(config.collect_seats_for_shard(4, &seats));
@@ -195,7 +197,8 @@ mod tests {
     fn test_collect_partial_seats_for_shard() {
         let mut config = Config::new_mock(true);
         config.stake_per_seat = 90;
-        let (_, validators) = parse_raw_validator_data(&config, &new_test_raw_validator_data());
+        let (_, validators) =
+            parse_raw_validator_data(&new_test_raw_validator_data(), config.stake_per_seat);
         // Using ordered partial seats as input to have a deterministic result of
         // `collect_partial_seats_for_shard`.
         let partial_seats = new_ordered_partial_seats(&validators, config.stake_per_seat);
@@ -223,7 +226,8 @@ mod tests {
     #[test]
     fn test_collect_partial_seats_for_shard_errors() {
         let config = Config::new_mock(true);
-        let (_, validators) = parse_raw_validator_data(&config, &new_test_raw_validator_data());
+        let (_, validators) =
+            parse_raw_validator_data(&new_test_raw_validator_data(), config.stake_per_seat);
         let partial_seats = new_ordered_partial_seats(&validators, config.stake_per_seat);
 
         insta::assert_debug_snapshot!(

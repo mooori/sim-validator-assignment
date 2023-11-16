@@ -3,12 +3,11 @@ use crate::partial_seat::ShuffledPartialSeats;
 use crate::seat::ShuffledSeats;
 use crate::shard::Shard;
 use crate::validator::{
-    new_ordered_partial_seats, new_ordered_seats, parse_raw_validator_data, RawValidatorData,
+    new_ordered_partial_seats, new_ordered_seats, parse_raw_validator_data, read_validator_data,
+    RawValidatorData,
 };
 use num_rational::Ratio;
 use num_traits::ToPrimitive;
-use std::fs::read_to_string;
-use std::path::Path;
 
 pub fn run(config: &Config) -> anyhow::Result<()> {
     let raw_validator_data = match &config.validator_data {
@@ -16,7 +15,8 @@ pub fn run(config: &Config) -> anyhow::Result<()> {
         None => mock_validator_data(),
     };
 
-    let (population_stats, validators) = parse_raw_validator_data(config, &raw_validator_data);
+    let (population_stats, validators) =
+        parse_raw_validator_data(&raw_validator_data, config.stake_per_seat);
 
     println!("population_stats: {:?}", population_stats);
     println!(
@@ -81,13 +81,6 @@ pub fn run(config: &Config) -> anyhow::Result<()> {
         config.num_blocks, config.num_shards, num_corrupted_shards, config.num_blocks * u64::from(config.num_shards)
     );
     Ok(())
-}
-
-/// Reads validator data from a file exptected to contain `Vec<RawValidatorData>` serialized as
-/// JSON.
-fn read_validator_data(file_path: &Path) -> anyhow::Result<Vec<RawValidatorData>> {
-    let file_content = read_to_string(file_path)?;
-    serde_json::from_str::<Vec<RawValidatorData>>(&file_content).map_err(|err| err.into())
 }
 
 fn mock_validator_data() -> Vec<RawValidatorData> {

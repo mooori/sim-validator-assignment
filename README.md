@@ -32,6 +32,18 @@ Validator assignment is based on a random shuffle of validator seats. The number
 
 For now, this crate uses [`fastrand`] to shuffle the vector of seats. For the future, it is possible to allow users to chose between different crates that provide randomness. For instance with feature flags at compile time or with CLI parameters when initiating a simulation.
 
+# Other commands
+
+Besides running simulations, this tool offers further commands allowing to download and analyze validator data:
+
+```
+Commands:
+  run         Runs a simulation
+  download    Downloads valdiator data
+  seat-stats  Prints seat stats
+  help        Print this message or the help of the given subcommand(s)
+```
+
 # Development
 
 Notes regarding the development workflow can be found in [`Development.md`](./Development.md).

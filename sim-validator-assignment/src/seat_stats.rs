@@ -31,8 +31,8 @@ pub(crate) fn print_seat_stats(config: &SeatStatsConfig) -> anyhow::Result<()> {
         parse_raw_validator_data(&raw_validator_data, config.stake_per_seat);
 
     println!(
-        "stake/malicious_stake\t{:.4}",
-        Ratio::new(population_stats.stake, population_stats.malicious_stake)
+        "malicious_stake/stake\t{:.4}",
+        Ratio::new(population_stats.malicious_stake, population_stats.stake)
             .to_f64()
             .unwrap(),
     );

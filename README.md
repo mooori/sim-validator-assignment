@@ -24,6 +24,61 @@ cargo run -p sim-validator-assignment -- run --num-blocks <...>
 make <target>
 ```
 
+More detailed explanation for particular blockchains follow below.
+
+## NEAR
+
+To print the docs for any of the commands used below:
+
+```bash
+cargo run -p sim-validator-assignment -- <command> --help
+```
+
+### 1: Download validator data
+
+To download the latest validator data and store it in `validator_data.json`:
+
+```bash
+cargo run -p sim-validator-assignment -- \
+	download \
+	--protocol near	\
+	--rpc-url 'https://rpc.mainnet.near.org' \
+	--out ./validator_data.json
+```
+
+- It is possible to download validator data for a specific epoch by providing the `--block-height` parameter. Note that for NEAR it must be the last block of an epoch, otherwise the RPC returns an (rather opaque) error.
+- To download validator data for another network (e.g.) testnet, use a corresponding `--rpc-url`.
+
+### 2: Make some validators malicious
+
+The purpose of the simulation is determining the estimated probability of shard corruption, so some validators should be malicious. To make a validator malicious, set its `is_malicious` value to true in `validator_data.json`.
+
+Some basic statistics for the validator population can be printed with:
+
+```bash
+cargo run -p sim-validator-assignment -- \
+	seat-stats \
+	--validator-data ./validator_data.json \
+	--stake-per-seat 1140000000000000000000000000000 \
+	--include-partial-seats
+```
+
+### 3: Run the simulation
+
+```bash
+cargo run -p sim-validator-assignment -- \
+	run \
+	--num-blocks 10000000000 \
+	--num-shards 6 \
+	--seats-per-shard 68 \
+	--stake-per-seat 1140000000000000000000000000000 \
+	--max-malicious-stake-per-shard 2/3 \
+	--include-partial-seats \
+	--validator-data ./validator_data.json
+```
+
+Depending on the parameters the simulation may run for a long time. Periodically the number of `corrupted_shards/simulated_shards` is printed to the console.
+
 # Algorithm for validator assignment
 
 Validator assignment is based on a random shuffle of validator seats. The number of seats a validator gets assigned is a function of its stake and simulation parameters. All validators' seats are collected in a vector which is then shuffled and shuffled seats are assigned to shards.
